@@ -187,6 +187,12 @@
       cursor: pointer;
       background: var(--accent);
       color: white;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(141, 57, 20, 0.18);
     }
 
     button.secondary {
@@ -243,6 +249,14 @@
     .upload-card {
       display: grid;
       gap: 12px;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
     }
 
     .upload-card input[type="file"],
@@ -304,7 +318,9 @@
 
     .list,
     .rank-list,
-    .bar-list {
+    .bar-list,
+    .compare-list,
+    .funnel-list {
       display: grid;
       gap: 12px;
       margin-top: 14px;
@@ -360,6 +376,204 @@
 
     .progress-fill.green {
       background: linear-gradient(90deg, #6f8d5d, #aec59d);
+    }
+
+    .progress-fill.gold {
+      background: linear-gradient(90deg, #9a6a20, #e2c07c);
+    }
+
+    .compare-item {
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(88, 67, 45, 0.08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(252, 246, 237, 0.86) 100%);
+    }
+
+    .compare-head,
+    .metric-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .metric-line {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .metric-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .mini-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(197, 93, 40, 0.08);
+      color: var(--accent-deep);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .donut-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 18px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .donut-card {
+      display: grid;
+      place-items: center;
+      padding: 10px 0;
+    }
+
+    .donut-chart {
+      position: relative;
+      width: 228px;
+      height: 228px;
+      border-radius: 50%;
+      background: conic-gradient(#e8ddd0 0 100%);
+      box-shadow: inset 0 0 0 1px rgba(88, 67, 45, 0.06);
+    }
+
+    .donut-chart::after {
+      content: "";
+      position: absolute;
+      inset: 30px;
+      border-radius: 50%;
+      background: var(--panel-solid);
+      border: 1px solid rgba(88, 67, 45, 0.08);
+      box-shadow: inset 0 12px 24px rgba(88, 67, 45, 0.04);
+    }
+
+    .donut-center {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 0 48px;
+    }
+
+    .donut-center strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+    }
+
+    .donut-center span {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .funnel-step {
+      position: relative;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(90deg, rgba(197, 93, 40, 0.12), rgba(231, 201, 171, 0.28));
+      border: 1px solid rgba(197, 93, 40, 0.12);
+      overflow: hidden;
+    }
+
+    .funnel-step::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      width: var(--funnel-width, 100%);
+      background: linear-gradient(90deg, rgba(197, 93, 40, 0.14), rgba(197, 93, 40, 0));
+      pointer-events: none;
+    }
+
+    .funnel-step > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .funnel-step .value {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-top: 6px;
+    }
+
+    .funnel-step .sub {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .trend-lane {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+      align-items: stretch;
+    }
+
+    .trend-node {
+      position: relative;
+      padding: 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 240, 230, 0.9) 100%);
+      border: 1px solid rgba(88, 67, 45, 0.08);
+      min-height: 168px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .trend-node::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -12px;
+      width: 24px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(197, 93, 40, 0.35), rgba(197, 93, 40, 0));
+    }
+
+    .trend-node:last-child::after {
+      display: none;
+    }
+
+    .trend-node .stage {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .trend-node .gmv {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+    }
+
+    .trend-node .stage-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(88, 67, 45, 0.08);
+      overflow: hidden;
+    }
+
+    .trend-node .stage-bar span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--sand));
     }
 
     .filters {
@@ -463,6 +677,11 @@
       .double-grid {
         grid-template-columns: 1fr 1fr;
       }
+
+      .donut-layout,
+      .trend-lane {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 760px) {
@@ -481,6 +700,16 @@
       .triple-grid,
       .double-grid {
         grid-template-columns: 1fr;
+      }
+
+      .donut-layout,
+      .trend-lane {
+        grid-template-columns: 1fr;
+      }
+
+      .donut-chart {
+        width: 210px;
+        height: 210px;
       }
     }
   </style>
@@ -533,9 +762,11 @@
       </div>
 
       <div class="upload-actions">
-        <div class="muted">如果你只上传直播底表，看板也能先出结果；生命周期相关模块会标记为“未匹配”。</div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="muted">如果你只上传直播底表，看板也能先出结果；生命周期相关模块会标记为“未匹配”。导出会基于当前筛选结果生成。</div>
+        <div class="action-row">
           <button id="buildBtn" disabled>生成看板</button>
+          <button id="exportDetailBtn" class="secondary" disabled>导出当前明细</button>
+          <button id="exportSummaryBtn" class="secondary" disabled>导出汇总数据</button>
           <button id="resetDataBtn" class="secondary" disabled>清空当前数据</button>
         </div>
       </div>
@@ -574,12 +805,12 @@
       <div class="panel section">
         <div class="panel-top">
           <div>
-            <h2>品牌 LIVE 总览</h2>
-            <p class="muted">按品牌聚合有 LIVE 表现的产品数、LIVE GMV、LIVE 销量，以及生命周期命中情况。</p>
+            <h2>品牌 LIVE 对比</h2>
+            <p class="muted">按品牌对比 LIVE GMV 份额、LIVE 销量和命中产品数，适合一眼看清本期直播主要由谁贡献。</p>
           </div>
-          <div class="tag">Brand Rollup</div>
+          <div class="tag">Brand Compare</div>
         </div>
-        <div class="bar-list" id="brandList">
+        <div class="compare-list" id="brandList">
           <div class="empty">上传 Excel 后显示。</div>
         </div>
       </div>
@@ -592,7 +823,45 @@
           </div>
           <div class="tag">Lifecycle Mix</div>
         </div>
-        <div class="bar-list" id="lifecycleList">
+        <div class="donut-layout">
+          <div class="donut-card">
+            <div class="donut-chart" id="lifecycleDonut">
+              <div class="donut-center">
+                <strong id="lifecycleDonutValue">Rp 0</strong>
+                <span>总 LIVE GMV</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-list" id="lifecycleList">
+            <div class="empty">上传 Excel 后显示。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel section">
+        <div class="panel-top">
+          <div>
+            <h2>LIVE 转化漏斗</h2>
+            <p class="muted">从曝光到页面浏览、到买家再到销量，帮助你快速定位是流量弱、点击弱还是成交弱。</p>
+          </div>
+          <div class="tag">LIVE Funnel</div>
+        </div>
+        <div class="funnel-list" id="funnelList">
+          <div class="empty">上传 Excel 后显示。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="double-grid">
+      <div class="panel section">
+        <div class="panel-top">
+          <div>
+            <h2>生命周期趋势带</h2>
+            <p class="muted">按新品孵化、爆发期、维稳期、衰退期的顺序看 LIVE GMV 与单品产出，帮助你理解直播成交重心落在哪一段。</p>
+          </div>
+          <div class="tag">Lifecycle Trend</div>
+        </div>
+        <div class="trend-lane" id="lifecycleTrend">
           <div class="empty">上传 Excel 后显示。</div>
         </div>
       </div>
@@ -600,10 +869,10 @@
       <div class="panel section">
         <div class="panel-top">
           <div>
-            <h2>LIVE 核心概览</h2>
-            <p class="muted">这里集中看 LIVE 口径下的产品渗透、零成交流量和平均单品产出，不再混入其他渠道数据。</p>
+            <h2>LIVE 分析焦点</h2>
+            <p class="muted">从渗透率、零成交流量、客单产出和整体点击转化角度，帮你先锁定这期直播的问题类型。</p>
           </div>
-          <div class="tag">Channel Split</div>
+          <div class="tag">Focus Metrics</div>
         </div>
         <div class="bar-list" id="channelList">
           <div class="empty">上传 Excel 后显示。</div>
@@ -709,6 +978,8 @@
   <script>
     const EXPECTED_SHEETS = ["Sparco", "Letme", "Stypro", "Icyee"];
     const BRAND_ORDER = ["Sparco", "Letme", "Stypro", "Icyee", "Other", "Unknown"];
+    const LIFECYCLE_ORDER = ["新品孵化", "爆发期", "维稳期", "衰退期", "未标注生命周期", "未匹配生命周期"];
+    const LIFECYCLE_COLORS = ["#c55d28", "#dd8b35", "#6f8d5d", "#a66a58", "#cab9a8", "#e3d7ca"];
 
     const state = {
       productFile: null,
@@ -734,6 +1005,8 @@
       productStatus: document.getElementById("productStatus"),
       lifecycleStatus: document.getElementById("lifecycleStatus"),
       buildBtn: document.getElementById("buildBtn"),
+      exportDetailBtn: document.getElementById("exportDetailBtn"),
+      exportSummaryBtn: document.getElementById("exportSummaryBtn"),
       resetDataBtn: document.getElementById("resetDataBtn"),
       periodLabel: document.getElementById("periodLabel"),
       heroNotices: document.getElementById("heroNotices"),
@@ -744,7 +1017,11 @@
       keywordFilter: document.getElementById("keywordFilter"),
       resetFilterBtn: document.getElementById("resetFilterBtn"),
       brandList: document.getElementById("brandList"),
+      lifecycleDonut: document.getElementById("lifecycleDonut"),
+      lifecycleDonutValue: document.getElementById("lifecycleDonutValue"),
       lifecycleList: document.getElementById("lifecycleList"),
+      funnelList: document.getElementById("funnelList"),
+      lifecycleTrend: document.getElementById("lifecycleTrend"),
       channelList: document.getElementById("channelList"),
       topProductList: document.getElementById("topProductList"),
       unmatchedList: document.getElementById("unmatchedList"),
@@ -848,8 +1125,13 @@
     }
 
     function enableBuild() {
-      refs.buildBtn.disabled = !refs.productFile;
-      refs.resetDataBtn.disabled = !refs.productFile && !refs.lifecycleFile && !state.rows.length;
+      refs.buildBtn.disabled = !state.productFile;
+      refs.resetDataBtn.disabled = !state.productFile && !state.lifecycleFile && !state.rows.length;
+    }
+
+    function enableExport(enabled) {
+      refs.exportDetailBtn.disabled = !enabled;
+      refs.exportSummaryBtn.disabled = !enabled;
     }
 
     async function readWorkbook(file) {
@@ -1016,22 +1298,36 @@
         totalLiveGmv: 0,
         totalLiveItems: 0,
         totalLiveImpressions: 0,
+        totalLivePageViews: 0,
+        totalLiveUniquePageViews: 0,
         totalLiveCustomers: 0,
         activeCount: 0,
         matchedLifecycleRate: rows.length ? (meta.matchedLifecycle / rows.length) * 100 : 0,
         avgLiveGmvPerProduct: 0,
-        noSaleLiveProducts: 0
+        soldLiveProducts: 0,
+        noSaleLiveProducts: 0,
+        liveCtrFromTotals: 0,
+        liveViewToCustomerRate: 0,
+        liveCustomerToItemsRate: 0,
+        liveGmvPerCustomer: 0
       };
 
       rows.forEach((row) => {
         summary.totalLiveGmv += row.liveGmv;
         summary.totalLiveItems += row.liveItems;
         summary.totalLiveImpressions += row.liveImpressions;
+        summary.totalLivePageViews += row.livePageViews;
+        summary.totalLiveUniquePageViews += row.liveUniquePageViews;
         summary.totalLiveCustomers += row.liveUniqueCustomers;
         if (normalizeText(row.status) === "active") summary.activeCount += 1;
         if (row.liveImpressions > 0 && row.liveGmv <= 0) summary.noSaleLiveProducts += 1;
+        if (row.liveGmv > 0) summary.soldLiveProducts += 1;
       });
       summary.avgLiveGmvPerProduct = rows.length ? summary.totalLiveGmv / rows.length : 0;
+      summary.liveCtrFromTotals = summary.totalLiveImpressions ? (summary.totalLivePageViews / summary.totalLiveImpressions) * 100 : 0;
+      summary.liveViewToCustomerRate = summary.totalLiveUniquePageViews ? (summary.totalLiveCustomers / summary.totalLiveUniquePageViews) * 100 : 0;
+      summary.liveCustomerToItemsRate = summary.totalLiveCustomers ? (summary.totalLiveItems / summary.totalLiveCustomers) * 100 : 0;
+      summary.liveGmvPerCustomer = summary.totalLiveCustomers ? summary.totalLiveGmv / summary.totalLiveCustomers : 0;
 
       return summary;
     }
@@ -1071,14 +1367,14 @@
           note: "只统计直播字段 `LIVE GMV`，不再混入 Video / Shop Tab / Product Card。"
         },
         {
+          label: "有成交产品",
+          value: formatInt(summary.soldLiveProducts),
+          note: "LIVE GMV 大于 0 的产品数，用来区分有流量但未成交的产品。"
+        },
+        {
           label: "总 LIVE 销量",
           value: formatInt(summary.totalLiveItems),
           note: "来自 `LIVE items sold`，用于看直播直接带动的件数。"
-        },
-        {
-          label: "LIVE 曝光",
-          value: formatInt(summary.totalLiveImpressions),
-          note: "来自 `LIVE impressions`，适合配合成交一起看流量效率。"
         },
         {
           label: "LIVE 买家数",
@@ -1115,30 +1411,59 @@
         return;
       }
 
+      const totalLiveGmv = list.reduce((sum, item) => sum + item.liveGmv, 0);
       const maxGmv = Math.max(...list.map((item) => item.liveGmv), 1);
       refs.brandList.innerHTML = list.map((item) => `
-        <div class="bar-item">
-          <div class="bar-top">
+        <div class="compare-item">
+          <div class="compare-head">
             <strong>${escapeHtml(item.name)}</strong>
-            <span class="muted">${formatRp(item.liveGmv)}</span>
+            <span class="muted">${formatPct(totalLiveGmv ? item.liveGmv / totalLiveGmv * 100 : 0)}</span>
           </div>
-          <div class="muted">${formatInt(item.rows)} 个 LIVE 产品 · ${formatInt(item.liveItems)} 件 · 生命周期命中 ${formatPct(item.rows ? item.matched / item.rows * 100 : 0)}</div>
+          <div class="metric-line">
+            <span>${formatRp(item.liveGmv)}</span>
+            <span>${formatInt(item.rows)} 个 LIVE 产品</span>
+          </div>
+          <div class="metric-pills">
+            <span class="mini-pill">LIVE 销量 ${formatInt(item.liveItems)}</span>
+            <span class="mini-pill">命中率 ${formatPct(item.rows ? item.matched / item.rows * 100 : 0)}</span>
+          </div>
           <div class="progress-track">
-            <div class="progress-fill" style="width:${item.liveGmv / maxGmv * 100}%"></div>
+            <div class="progress-fill gold" style="width:${item.liveGmv / maxGmv * 100}%"></div>
           </div>
         </div>
       `).join("");
     }
 
-    function renderLifecycleRollup(rows) {
-      const list = buildRollup(rows, "lifecycle").sort((a, b) => b.liveGmv - a.liveGmv);
-      if (!list.length) {
+    function renderLifecycleMix(rows) {
+      if (!rows.length) {
+        refs.lifecycleDonut.style.background = "conic-gradient(#e8ddd0 0 100%)";
+        refs.lifecycleDonutValue.textContent = "Rp 0";
         refs.lifecycleList.innerHTML = `<div class="empty">没有符合筛选条件的生命周期数据。</div>`;
         return;
       }
-      const maxLiveGmv = Math.max(...list.map((item) => item.liveGmv), 1);
-      const totalLiveGmv = list.reduce((sum, item) => sum + item.liveGmv, 0);
-      refs.lifecycleList.innerHTML = list.map((item) => `
+      const source = buildRollup(rows, "lifecycle");
+      const ordered = LIFECYCLE_ORDER.map((name) => source.find((item) => item.name === name) || {
+        name,
+        rows: 0,
+        liveGmv: 0,
+        liveItems: 0,
+        matched: 0
+      }).filter((item) => item.rows > 0 || item.liveGmv > 0);
+
+      const totalLiveGmv = ordered.reduce((sum, item) => sum + item.liveGmv, 0);
+      let start = 0;
+      const gradientParts = [];
+      ordered.forEach((item, index) => {
+        const share = totalLiveGmv ? item.liveGmv / totalLiveGmv : 0;
+        const end = start + share * 100;
+        gradientParts.push(`${LIFECYCLE_COLORS[index % LIFECYCLE_COLORS.length]} ${start}% ${end}%`);
+        start = end;
+      });
+      if (!gradientParts.length) gradientParts.push("#e8ddd0 0 100%");
+
+      refs.lifecycleDonut.style.background = `conic-gradient(${gradientParts.join(", ")})`;
+      refs.lifecycleDonutValue.textContent = formatRp(totalLiveGmv);
+      refs.lifecycleList.innerHTML = ordered.map((item, index) => `
         <div class="bar-item">
           <div class="bar-top">
             <strong>${escapeHtml(item.name)}</strong>
@@ -1146,30 +1471,80 @@
           </div>
           <div class="muted">LIVE GMV ${formatRp(item.liveGmv)} · LIVE 销量 ${formatInt(item.liveItems)} · ${formatInt(item.rows)} 个产品</div>
           <div class="progress-track">
-            <div class="progress-fill green" style="width:${item.liveGmv / maxLiveGmv * 100}%"></div>
+            <div class="progress-fill green" style="width:${totalLiveGmv ? item.liveGmv / totalLiveGmv * 100 : 0}%; background:${LIFECYCLE_COLORS[index % LIFECYCLE_COLORS.length]};"></div>
           </div>
+        </div>
+      `).join("");
+    }
+
+    function renderLifecycleRollup(rows) {
+      if (!rows.length) {
+        refs.lifecycleTrend.innerHTML = `<div class="empty">没有符合筛选条件的生命周期数据。</div>`;
+        return;
+      }
+      const source = buildRollup(rows, "lifecycle");
+      const ordered = LIFECYCLE_ORDER.map((name) => source.find((item) => item.name === name) || {
+        name,
+        rows: 0,
+        liveGmv: 0,
+        liveItems: 0,
+        matched: 0
+      });
+      const maxLiveGmv = Math.max(...ordered.map((item) => item.liveGmv), 1);
+      refs.lifecycleTrend.innerHTML = ordered.map((item) => `
+        <div class="trend-node">
+          <div class="stage">${escapeHtml(item.name)}</div>
+          <div class="gmv">${formatRp(item.liveGmv)}</div>
+          <div class="muted">${formatInt(item.rows)} 个产品</div>
+          <div class="stage-bar"><span style="width:${item.liveGmv / maxLiveGmv * 100}%"></span></div>
+          <div class="muted">单品均值 ${formatRp(item.rows ? item.liveGmv / item.rows : 0)}</div>
+          <div class="muted">LIVE 销量 ${formatInt(item.liveItems)}</div>
         </div>
       `).join("");
     }
 
     function renderChannels(summary, rows, meta) {
       const items = [
-        { name: "有成交 LIVE 产品", value: rows.filter((row) => row.liveGmv > 0).length, note: "LIVE GMV 大于 0 的产品数" },
+        { name: "LIVE 渗透率", value: meta.rawRows ? (meta.liveRows / meta.rawRows) * 100 : 0, note: "进入 LIVE 口径的产品数 / 原始产品数", type: "pct" },
         { name: "有流量无成交", value: summary.noSaleLiveProducts, note: "有 LIVE 曝光但 LIVE GMV 仍为 0 的产品数" },
-        { name: "平均单品 LIVE GMV", value: summary.avgLiveGmvPerProduct, note: "按当前筛选后的 LIVE 产品均值计算" },
-        { name: "LIVE 渗透率", value: meta.rawRows ? (meta.liveRows / meta.rawRows) * 100 : 0, note: "进入 LIVE 口径的产品数 / 原始产品数" }
+        { name: "平均单品 LIVE GMV", value: summary.avgLiveGmvPerProduct, note: "按当前筛选后的 LIVE 产品均值计算", type: "currency" },
+        { name: "整体 LIVE CTR", value: summary.liveCtrFromTotals, note: "按总 LIVE 页面浏览 / 总 LIVE 曝光计算", type: "pct" },
+        { name: "浏览到买家", value: summary.liveViewToCustomerRate, note: "按总 LIVE 买家 / 总 LIVE 独立浏览计算", type: "pct" },
+        { name: "单买家产出", value: summary.liveGmvPerCustomer, note: "按总 LIVE GMV / 总 LIVE 买家数计算", type: "currency" }
       ];
-      const maxValue = Math.max(...items.map((item) => item.value), 1);
+      const maxByType = {
+        pct: Math.max(...items.filter((item) => item.type === "pct").map((item) => item.value), 1),
+        currency: Math.max(...items.filter((item) => item.type === "currency").map((item) => item.value), 1),
+        count: Math.max(...items.filter((item) => !item.type).map((item) => item.value), 1)
+      };
       refs.channelList.innerHTML = items.map((item) => `
         <div class="bar-item">
           <div class="bar-top">
             <strong>${escapeHtml(item.name)}</strong>
-            <span class="muted">${item.name.includes("率") ? formatPct(item.value) : item.name.includes("平均") ? formatRp(item.value) : formatInt(item.value)}</span>
+            <span class="muted">${item.type === "pct" ? formatPct(item.value) : item.type === "currency" ? formatRp(item.value) : formatInt(item.value)}</span>
           </div>
           <div class="muted">${escapeHtml(item.note)}</div>
           <div class="progress-track">
-            <div class="progress-fill" style="width:${item.value / maxValue * 100}%"></div>
+            <div class="progress-fill" style="width:${item.value / (item.type === "pct" ? maxByType.pct : item.type === "currency" ? maxByType.currency : maxByType.count) * 100}%"></div>
           </div>
+        </div>
+      `).join("");
+    }
+
+    function renderFunnel(summary) {
+      const stages = [
+        { name: "LIVE 曝光", value: summary.totalLiveImpressions, hint: "源自 LIVE impressions" },
+        { name: "LIVE 页面浏览", value: summary.totalLivePageViews, hint: `阶段转化 ${formatPct(summary.totalLiveImpressions ? summary.totalLivePageViews / summary.totalLiveImpressions * 100 : 0)}` },
+        { name: "LIVE 独立浏览", value: summary.totalLiveUniquePageViews, hint: `阶段转化 ${formatPct(summary.totalLivePageViews ? summary.totalLiveUniquePageViews / summary.totalLivePageViews * 100 : 0)}` },
+        { name: "LIVE 买家数", value: summary.totalLiveCustomers, hint: `阶段转化 ${formatPct(summary.liveViewToCustomerRate)}` },
+        { name: "LIVE 销量", value: summary.totalLiveItems, hint: `阶段转化 ${formatPct(summary.liveCustomerToItemsRate)}` }
+      ];
+      const base = Math.max(stages[0].value, 1);
+      refs.funnelList.innerHTML = stages.map((stage) => `
+        <div class="funnel-step" style="--funnel-width:${Math.max((stage.value / base) * 100, 12)}%">
+          <strong>${escapeHtml(stage.name)}</strong>
+          <div class="value">${formatInt(stage.value)}</div>
+          <div class="sub">${escapeHtml(stage.hint)}</div>
         </div>
       `).join("");
     }
@@ -1288,6 +1663,87 @@
       refs.tableMeta.textContent = `当前显示 ${formatInt(rows.length)} 条产品记录。`;
     }
 
+    function downloadCsv(filename, rows) {
+      const csv = rows.map((row) =>
+        row.map((value) => {
+          const text = String(value ?? "");
+          if (/[",\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+          return text;
+        }).join(",")
+      ).join("\n");
+      const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportDetailCsv() {
+      const rows = [
+        ["brand", "sheet_name", "pid", "product", "lifecycle", "status", "live_items_sold", "live_gmv", "live_impressions", "live_page_views", "live_unique_page_views", "live_unique_customers", "live_ctr_pct", "live_cvr_pct"],
+        ...state.filteredRows.map((row) => [
+          row.brand,
+          row.sheetName,
+          row.pid,
+          row.product,
+          row.lifecycle,
+          row.status,
+          row.liveItems,
+          row.liveGmv,
+          row.liveImpressions,
+          row.livePageViews,
+          row.liveUniquePageViews,
+          row.liveUniqueCustomers,
+          row.liveCtr,
+          row.liveCvr
+        ])
+      ];
+      downloadCsv(`livestream-live-detail-${Date.now()}.csv`, rows);
+    }
+
+    function exportSummaryCsv() {
+      const filteredMeta = {
+        ...state.meta,
+        matchedLifecycle: state.filteredRows.filter((row) => row.lifecycle !== "未匹配生命周期").length,
+        liveRows: state.filteredRows.length
+      };
+      const summary = getSummary(state.filteredRows, filteredMeta);
+      const brandRows = buildRollup(state.filteredRows, "brand");
+      const lifecycleRows = buildRollup(state.filteredRows, "lifecycle");
+
+      const rows = [
+        ["section", "dimension", "metric", "value"],
+        ["overview", "all", "live_products", summary.totalRows],
+        ["overview", "all", "total_live_gmv", summary.totalLiveGmv],
+        ["overview", "all", "total_live_items", summary.totalLiveItems],
+        ["overview", "all", "total_live_impressions", summary.totalLiveImpressions],
+        ["overview", "all", "total_live_page_views", summary.totalLivePageViews],
+        ["overview", "all", "total_live_unique_page_views", summary.totalLiveUniquePageViews],
+        ["overview", "all", "total_live_customers", summary.totalLiveCustomers],
+        ["overview", "all", "live_ctr_pct", summary.liveCtrFromTotals],
+        ["overview", "all", "view_to_customer_pct", summary.liveViewToCustomerRate],
+        ["overview", "all", "lifecycle_match_pct", summary.matchedLifecycleRate]
+      ];
+
+      brandRows.forEach((item) => {
+        rows.push(["brand", item.name, "live_gmv", item.liveGmv]);
+        rows.push(["brand", item.name, "live_items", item.liveItems]);
+        rows.push(["brand", item.name, "live_products", item.rows]);
+      });
+
+      lifecycleRows.forEach((item) => {
+        rows.push(["lifecycle", item.name, "live_gmv", item.liveGmv]);
+        rows.push(["lifecycle", item.name, "live_items", item.liveItems]);
+        rows.push(["lifecycle", item.name, "live_products", item.rows]);
+      });
+
+      downloadCsv(`livestream-live-summary-${Date.now()}.csv`, rows);
+    }
+
     function populateFilters(rows) {
       const unique = (getter) => [...new Set(rows.map(getter).filter(Boolean))];
       const brandOptions = unique((row) => row.brand).sort((a, b) => BRAND_ORDER.indexOf(a) - BRAND_ORDER.indexOf(b));
@@ -1333,7 +1789,9 @@
 
       renderStats(summary, state.meta);
       renderBrandRollup(state.filteredRows);
+      renderLifecycleMix(state.filteredRows);
       renderLifecycleRollup(state.filteredRows);
+      renderFunnel(summary);
       renderChannels(summary, state.filteredRows, state.meta);
       renderRanks(state.filteredRows);
       renderTable(state.filteredRows);
@@ -1364,6 +1822,7 @@
         populateFilters(state.rows);
         renderNotices(state.notices);
         renderHealth(state.rows, state.meta);
+        enableExport(Boolean(state.rows.length));
         applyFilters();
       } catch (error) {
         refs.heroNotices.innerHTML = `<div class="notice risk">文件解析失败：${escapeHtml(error.message || String(error))}</div>`;
@@ -1375,6 +1834,8 @@
     }
 
     function resetAll() {
+      state.productFile = null;
+      state.lifecycleFile = null;
       state.rows = [];
       state.filteredRows = [];
       state.lifecycleMap = new Map();
@@ -1394,7 +1855,11 @@
       refs.periodLabel.textContent = "等待上传";
       refs.statsGrid.innerHTML = "";
       refs.brandList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
+      refs.lifecycleDonut.style.background = "conic-gradient(#e8ddd0 0 100%)";
+      refs.lifecycleDonutValue.textContent = "Rp 0";
       refs.lifecycleList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
+      refs.funnelList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
+      refs.lifecycleTrend.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.channelList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.topProductList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.unmatchedList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
@@ -1416,12 +1881,13 @@
       setStatus(refs.lifecycleStatus, "", "等待上传");
       refs.buildBtn.disabled = true;
       refs.resetDataBtn.disabled = true;
+      enableExport(false);
     }
 
     refs.productWorkbook.addEventListener("change", () => {
-      refs.productFile = refs.productWorkbook.files[0] || null;
-      if (refs.productFile) {
-        setStatus(refs.productStatus, "ok", `已选择 ${refs.productFile.name}`);
+      state.productFile = refs.productWorkbook.files[0] || null;
+      if (state.productFile) {
+        setStatus(refs.productStatus, "ok", `已选择 ${state.productFile.name}`);
       } else {
         setStatus(refs.productStatus, "", "等待上传");
       }
@@ -1429,9 +1895,9 @@
     });
 
     refs.lifecycleWorkbook.addEventListener("change", () => {
-      refs.lifecycleFile = refs.lifecycleWorkbook.files[0] || null;
-      if (refs.lifecycleFile) {
-        setStatus(refs.lifecycleStatus, "ok", `已选择 ${refs.lifecycleFile.name}`);
+      state.lifecycleFile = refs.lifecycleWorkbook.files[0] || null;
+      if (state.lifecycleFile) {
+        setStatus(refs.lifecycleStatus, "ok", `已选择 ${state.lifecycleFile.name}`);
       } else {
         setStatus(refs.lifecycleStatus, "", "等待上传");
       }
@@ -1439,6 +1905,8 @@
     });
 
     refs.buildBtn.addEventListener("click", buildDashboard);
+    refs.exportDetailBtn.addEventListener("click", exportDetailCsv);
+    refs.exportSummaryBtn.addEventListener("click", exportSummaryCsv);
     refs.resetDataBtn.addEventListener("click", resetAll);
     refs.resetFilterBtn.addEventListener("click", () => {
       refs.brandFilter.value = "";
