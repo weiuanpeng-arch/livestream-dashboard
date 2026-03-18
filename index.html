@@ -740,11 +740,11 @@
           <div class="panel-top">
             <div>
               <h3>1. 上传直播数据底表</h3>
-              <p class="field-note">支持一个工作簿内多个 sheet。系统会优先按 sheet 名识别 `Sparco / Letme / Stypro / Icyee`，如果 sheet 名不规范，再尝试从产品名兜底识别品牌。</p>
+              <p class="field-note">支持一次上传多个工作簿，每个工作簿内也可以有多个 sheet。系统会优先按 sheet 名识别 `Sparco / Letme / Stypro / Icyee`，如果 sheet 名不规范，再尝试从产品名兜底识别品牌。</p>
             </div>
             <div class="chip">核心数据源</div>
           </div>
-          <input id="productWorkbook" type="file" accept=".xlsx,.xls">
+          <input id="productWorkbook" type="file" accept=".xlsx,.xls" multiple>
           <div class="status-line" id="productStatus"><span class="status-dot"></span>等待上传</div>
         </div>
 
@@ -982,13 +982,14 @@
     const LIFECYCLE_COLORS = ["#c55d28", "#dd8b35", "#6f8d5d", "#a66a58", "#cab9a8", "#e3d7ca"];
 
     const state = {
-      productFile: null,
+      productFiles: [],
       lifecycleFile: null,
       rows: [],
       filteredRows: [],
       lifecycleMap: new Map(),
       notices: [],
       meta: {
+        files: [],
         periods: [],
         sheets: [],
         rawRows: 0,
@@ -1125,8 +1126,8 @@
     }
 
     function enableBuild() {
-      refs.buildBtn.disabled = !state.productFile;
-      refs.resetDataBtn.disabled = !state.productFile && !state.lifecycleFile && !state.rows.length;
+      refs.buildBtn.disabled = !state.productFiles.length;
+      refs.resetDataBtn.disabled = !state.productFiles.length && !state.lifecycleFile && !state.rows.length;
     }
 
     function enableExport(enabled) {
@@ -1160,7 +1161,7 @@
       return map;
     }
 
-    function extractProductRows(workbook, lifecycleMap) {
+    function extractProductRows(workbook, lifecycleMap, fileName = "") {
       const rows = [];
       const periods = new Set();
       const sheetNames = [...workbook.SheetNames];
@@ -1216,7 +1217,8 @@
             pid,
             product,
             brand,
-            sheetName,
+            sourceFile: fileName,
+            sheetName: fileName ? `${fileName} / ${sheetName}` : sheetName,
             status: String(row["status"] || "Unknown").trim() || "Unknown",
             liveGmv,
             liveItems,
@@ -1236,6 +1238,7 @@
       return {
         rows,
         meta: {
+          files: fileName ? [fileName] : [],
           periods: [...periods],
           sheets: sheetNames,
           rawRows,
@@ -1582,6 +1585,11 @@
     function renderHealth(rows, meta) {
       const health = [
         {
+          title: "直播底表文件数",
+          value: formatInt(meta.files.length),
+          detail: `已读取文件：${meta.files.join(" / ") || "无"}`
+        },
+        {
           title: "直播底表工作表",
           value: `${formatInt(meta.sheets.length)} 个`,
           detail: `已识别工作表：${meta.sheets.join(" / ") || "无"}`
@@ -1684,9 +1692,10 @@
 
     function exportDetailCsv() {
       const rows = [
-        ["brand", "sheet_name", "pid", "product", "lifecycle", "status", "live_items_sold", "live_gmv", "live_impressions", "live_page_views", "live_unique_page_views", "live_unique_customers", "live_ctr_pct", "live_cvr_pct"],
+        ["brand", "source_file", "sheet_name", "pid", "product", "lifecycle", "status", "live_items_sold", "live_gmv", "live_impressions", "live_page_views", "live_unique_page_views", "live_unique_customers", "live_ctr_pct", "live_cvr_pct"],
         ...state.filteredRows.map((row) => [
           row.brand,
+          row.sourceFile,
           row.sheetName,
           row.pid,
           row.product,
@@ -1775,6 +1784,7 @@
             row.product,
             row.pid,
             row.brand,
+            row.sourceFile,
             row.sheetName,
             row.lifecycle,
             row.productNameCn
@@ -1798,26 +1808,64 @@
     }
 
     async function buildDashboard() {
-      if (!refs.productWorkbook.files[0]) return;
+      if (!refs.productWorkbook.files.length) return;
 
       refs.buildBtn.disabled = true;
       refs.buildBtn.textContent = "生成中...";
 
       try {
-        const productWorkbook = await readWorkbook(refs.productWorkbook.files[0]);
         const lifecycleWorkbook = refs.lifecycleWorkbook.files[0]
           ? await readWorkbook(refs.lifecycleWorkbook.files[0])
           : null;
 
         state.lifecycleMap = lifecycleWorkbook ? extractLifecycleMap(lifecycleWorkbook) : new Map();
-        const { rows, meta } = extractProductRows(productWorkbook, state.lifecycleMap);
+        const merged = {
+          rows: [],
+          meta: {
+            files: [],
+            periods: [],
+            sheets: [],
+            rawRows: 0,
+            liveRows: 0,
+            matchedLifecycle: 0,
+            blankLifecycle: 0,
+            unknownBrandRows: 0
+          }
+        };
 
-        state.rows = rows.sort((a, b) => b.liveGmv - a.liveGmv);
-        state.meta = meta;
+        for (const file of state.productFiles) {
+          const workbook = await readWorkbook(file);
+          const { rows, meta } = extractProductRows(workbook, state.lifecycleMap, file.name);
+          merged.rows.push(...rows);
+          merged.meta.files.push(...meta.files);
+          merged.meta.periods.push(...meta.periods);
+          merged.meta.sheets.push(...meta.sheets);
+          merged.meta.rawRows += meta.rawRows;
+          merged.meta.liveRows += meta.liveRows;
+          merged.meta.matchedLifecycle += meta.matchedLifecycle;
+          merged.meta.blankLifecycle += meta.blankLifecycle;
+          merged.meta.unknownBrandRows += meta.unknownBrandRows;
+        }
+
+        const uniquePeriods = [...new Set(merged.meta.periods.filter(Boolean))];
+        const uniqueSheets = [...new Set(merged.meta.sheets.filter(Boolean))];
+        const uniqueFiles = [...new Set(merged.meta.files.filter(Boolean))];
+
+        state.rows = merged.rows.sort((a, b) => b.liveGmv - a.liveGmv);
+        state.meta = {
+          ...merged.meta,
+          files: uniqueFiles,
+          periods: uniquePeriods,
+          sheets: uniqueSheets
+        };
         state.notices = collectNotices(state.rows, state.meta);
         state.filteredRows = [...state.rows];
 
-        refs.periodLabel.textContent = meta.periods[0] || "未识别周期";
+        refs.periodLabel.textContent = uniquePeriods.length === 1
+          ? uniquePeriods[0]
+          : uniquePeriods.length > 1
+            ? `${uniquePeriods.length} 个周期`
+            : "未识别周期";
 
         populateFilters(state.rows);
         renderNotices(state.notices);
@@ -1834,13 +1882,14 @@
     }
 
     function resetAll() {
-      state.productFile = null;
+      state.productFiles = [];
       state.lifecycleFile = null;
       state.rows = [];
       state.filteredRows = [];
       state.lifecycleMap = new Map();
       state.notices = [];
       state.meta = {
+        files: [],
         periods: [],
         sheets: [],
         rawRows: 0,
@@ -1885,9 +1934,9 @@
     }
 
     refs.productWorkbook.addEventListener("change", () => {
-      state.productFile = refs.productWorkbook.files[0] || null;
-      if (state.productFile) {
-        setStatus(refs.productStatus, "ok", `已选择 ${state.productFile.name}`);
+      state.productFiles = [...refs.productWorkbook.files];
+      if (state.productFiles.length) {
+        setStatus(refs.productStatus, "ok", `已选择 ${state.productFiles.length} 个文件`);
       } else {
         setStatus(refs.productStatus, "", "等待上传");
       }
