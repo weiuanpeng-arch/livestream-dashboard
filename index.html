@@ -530,6 +530,13 @@
       margin-top: 14px;
     }
 
+    .ctr-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
     .traffic-card {
       padding: 16px;
       border-radius: 20px;
@@ -541,6 +548,48 @@
 
     .traffic-card strong {
       font-size: 16px;
+    }
+
+    .ctr-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(244, 237, 247, 0.92) 100%);
+      border: 1px solid rgba(88, 67, 45, 0.08);
+      display: grid;
+      gap: 12px;
+    }
+
+    .ctr-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .ctr-value {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .ctr-subgrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .ctr-subitem {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(88, 67, 45, 0.06);
+    }
+
+    .ctr-subitem span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
     }
 
     .traffic-metrics {
@@ -724,7 +773,8 @@
 
       .donut-layout,
       .trend-lane,
-      .traffic-grid {
+      .traffic-grid,
+      .ctr-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -749,7 +799,8 @@
 
       .donut-layout,
       .trend-lane,
-      .traffic-grid {
+      .traffic-grid,
+      .ctr-grid {
         grid-template-columns: 1fr;
       }
 
@@ -939,6 +990,19 @@
       </div>
     </section>
 
+    <section class="panel section">
+      <div class="panel-top">
+        <div>
+          <h2>生命周期 CTR 看板</h2>
+          <p class="muted">这里把不同阶段的点击效率单独拎出来看：`加权 CTR` 用总页面浏览 / 总曝光计算，`平均商品 CTR` 用商品行里的 `LIVE CTR` 字段均值计算。</p>
+        </div>
+        <div class="tag">Lifecycle CTR</div>
+      </div>
+      <div class="ctr-grid" id="lifecycleCtrBoard">
+        <div class="empty">上传 Excel 后显示。</div>
+      </div>
+    </section>
+
     <section class="double-grid">
       <div class="panel section">
         <div class="panel-top">
@@ -1083,6 +1147,7 @@
       funnelList: document.getElementById("funnelList"),
       lifecycleTrend: document.getElementById("lifecycleTrend"),
       lifecycleTrafficBoard: document.getElementById("lifecycleTrafficBoard"),
+      lifecycleCtrBoard: document.getElementById("lifecycleCtrBoard"),
       channelList: document.getElementById("channelList"),
       topProductList: document.getElementById("topProductList"),
       unmatchedList: document.getElementById("unmatchedList"),
@@ -1446,6 +1511,35 @@
       });
     }
 
+    function buildLifecycleCtr(rows) {
+      const map = new Map();
+      rows.forEach((row) => {
+        const lifecycle = row.lifecycle || "Unknown";
+        if (!map.has(lifecycle)) {
+          map.set(lifecycle, {
+            name: lifecycle,
+            rows: 0,
+            impressions: 0,
+            pageViews: 0,
+            ctrTotal: 0
+          });
+        }
+        const item = map.get(lifecycle);
+        item.rows += 1;
+        item.impressions += row.liveImpressions;
+        item.pageViews += row.livePageViews;
+        item.ctrTotal += row.liveCtr;
+      });
+
+      return LIFECYCLE_ORDER.map((name) => map.get(name) || {
+        name,
+        rows: 0,
+        impressions: 0,
+        pageViews: 0,
+        ctrTotal: 0
+      });
+    }
+
     function renderStats(summary, meta) {
       const cards = [
         {
@@ -1641,6 +1735,50 @@
           <div class="muted">${formatInt(item.rows)} 个产品进入当前阶段流量口径</div>
         </div>
       `).join("");
+    }
+
+    function renderLifecycleCtr(rows) {
+      if (!rows.length) {
+        refs.lifecycleCtrBoard.innerHTML = `<div class="empty">没有符合筛选条件的生命周期 CTR 数据。</div>`;
+        return;
+      }
+
+      const ctrRows = buildLifecycleCtr(rows).filter((item) =>
+        item.rows > 0 || item.impressions > 0 || item.pageViews > 0 || item.ctrTotal > 0
+      );
+      if (!ctrRows.length) {
+        refs.lifecycleCtrBoard.innerHTML = `<div class="empty">当前筛选下没有可展示的生命周期 CTR 数据。</div>`;
+        return;
+      }
+
+      const maxWeightedCtr = Math.max(...ctrRows.map((item) => item.impressions ? (item.pageViews / item.impressions) * 100 : 0), 1);
+      refs.lifecycleCtrBoard.innerHTML = ctrRows.map((item) => {
+        const weightedCtr = item.impressions ? (item.pageViews / item.impressions) * 100 : 0;
+        const avgCtr = item.rows ? item.ctrTotal / item.rows : 0;
+        return `
+          <div class="ctr-card">
+            <div class="ctr-head">
+              <strong>${escapeHtml(item.name)}</strong>
+              <span class="muted">${formatInt(item.rows)} 个产品</span>
+            </div>
+            <div class="ctr-value">${formatPct(weightedCtr)}</div>
+            <div class="muted">加权 CTR，按阶段总页面浏览 / 总曝光计算</div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:${weightedCtr / maxWeightedCtr * 100}%"></div>
+            </div>
+            <div class="ctr-subgrid">
+              <div class="ctr-subitem">
+                <span>平均商品 CTR</span>
+                <b>${formatPct(avgCtr)}</b>
+              </div>
+              <div class="ctr-subitem">
+                <span>阶段点击量</span>
+                <b>${formatInt(item.pageViews)}</b>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
     }
 
     function renderChannels(summary, rows, meta) {
@@ -1894,6 +2032,11 @@
         rows.push(["lifecycle_traffic", item.name, "live_unique_page_views", item.uniquePageViews]);
       });
 
+      buildLifecycleCtr(state.filteredRows).forEach((item) => {
+        rows.push(["lifecycle_ctr", item.name, "weighted_ctr_pct", item.impressions ? (item.pageViews / item.impressions) * 100 : 0]);
+        rows.push(["lifecycle_ctr", item.name, "avg_product_ctr_pct", item.rows ? item.ctrTotal / item.rows : 0]);
+      });
+
       downloadCsv(`livestream-live-summary-${Date.now()}.csv`, rows);
     }
 
@@ -1946,6 +2089,7 @@
       renderLifecycleMix(state.filteredRows);
       renderLifecycleRollup(state.filteredRows);
       renderLifecycleTraffic(state.filteredRows);
+      renderLifecycleCtr(state.filteredRows);
       renderFunnel(summary);
       renderChannels(summary, state.filteredRows, state.meta);
       renderRanks(state.filteredRows);
@@ -2055,6 +2199,7 @@
       refs.funnelList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.lifecycleTrend.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.lifecycleTrafficBoard.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
+      refs.lifecycleCtrBoard.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.channelList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.topProductList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.unmatchedList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
