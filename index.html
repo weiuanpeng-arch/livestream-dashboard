@@ -523,6 +523,50 @@
       align-items: stretch;
     }
 
+    .traffic-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .traffic-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 239, 229, 0.92) 100%);
+      border: 1px solid rgba(88, 67, 45, 0.08);
+      display: grid;
+      gap: 10px;
+    }
+
+    .traffic-card strong {
+      font-size: 16px;
+    }
+
+    .traffic-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .traffic-metric {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(88, 67, 45, 0.06);
+    }
+
+    .traffic-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .traffic-metric b {
+      font-size: 14px;
+    }
+
     .trend-node {
       position: relative;
       padding: 16px;
@@ -679,7 +723,8 @@
       }
 
       .donut-layout,
-      .trend-lane {
+      .trend-lane,
+      .traffic-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -703,7 +748,8 @@
       }
 
       .donut-layout,
-      .trend-lane {
+      .trend-lane,
+      .traffic-grid {
         grid-template-columns: 1fr;
       }
 
@@ -880,6 +926,19 @@
       </div>
     </section>
 
+    <section class="panel section">
+      <div class="panel-top">
+        <div>
+          <h2>生命周期流量看板</h2>
+          <p class="muted">这里专门看不同生命周期阶段的流量表现，核心聚焦 `LIVE 曝光`、`LIVE 页面浏览`、`LIVE 独立浏览` 和按阶段汇总的流量占比。</p>
+        </div>
+        <div class="tag">Lifecycle Traffic</div>
+      </div>
+      <div class="traffic-grid" id="lifecycleTrafficBoard">
+        <div class="empty">上传 Excel 后显示。</div>
+      </div>
+    </section>
+
     <section class="double-grid">
       <div class="panel section">
         <div class="panel-top">
@@ -1023,6 +1082,7 @@
       lifecycleList: document.getElementById("lifecycleList"),
       funnelList: document.getElementById("funnelList"),
       lifecycleTrend: document.getElementById("lifecycleTrend"),
+      lifecycleTrafficBoard: document.getElementById("lifecycleTrafficBoard"),
       channelList: document.getElementById("channelList"),
       topProductList: document.getElementById("topProductList"),
       unmatchedList: document.getElementById("unmatchedList"),
@@ -1357,6 +1417,35 @@
       return [...map.values()];
     }
 
+    function buildLifecycleTraffic(rows) {
+      const map = new Map();
+      rows.forEach((row) => {
+        const lifecycle = row.lifecycle || "Unknown";
+        if (!map.has(lifecycle)) {
+          map.set(lifecycle, {
+            name: lifecycle,
+            rows: 0,
+            impressions: 0,
+            pageViews: 0,
+            uniquePageViews: 0
+          });
+        }
+        const item = map.get(lifecycle);
+        item.rows += 1;
+        item.impressions += row.liveImpressions;
+        item.pageViews += row.livePageViews;
+        item.uniquePageViews += row.liveUniquePageViews;
+      });
+
+      return LIFECYCLE_ORDER.map((name) => map.get(name) || {
+        name,
+        rows: 0,
+        impressions: 0,
+        pageViews: 0,
+        uniquePageViews: 0
+      });
+    }
+
     function renderStats(summary, meta) {
       const cards = [
         {
@@ -1502,6 +1591,54 @@
           <div class="stage-bar"><span style="width:${item.liveGmv / maxLiveGmv * 100}%"></span></div>
           <div class="muted">单品均值 ${formatRp(item.rows ? item.liveGmv / item.rows : 0)}</div>
           <div class="muted">LIVE 销量 ${formatInt(item.liveItems)}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderLifecycleTraffic(rows) {
+      if (!rows.length) {
+        refs.lifecycleTrafficBoard.innerHTML = `<div class="empty">没有符合筛选条件的生命周期流量数据。</div>`;
+        return;
+      }
+
+      const trafficRows = buildLifecycleTraffic(rows).filter((item) =>
+        item.rows > 0 || item.impressions > 0 || item.pageViews > 0 || item.uniquePageViews > 0
+      );
+      if (!trafficRows.length) {
+        refs.lifecycleTrafficBoard.innerHTML = `<div class="empty">当前筛选下没有可展示的生命周期流量数据。</div>`;
+        return;
+      }
+
+      const totalImpressions = trafficRows.reduce((sum, item) => sum + item.impressions, 0);
+      const maxImpressions = Math.max(...trafficRows.map((item) => item.impressions), 1);
+      refs.lifecycleTrafficBoard.innerHTML = trafficRows.map((item) => `
+        <div class="traffic-card">
+          <div class="bar-top">
+            <strong>${escapeHtml(item.name)}</strong>
+            <span class="muted">${formatPct(totalImpressions ? item.impressions / totalImpressions * 100 : 0)} 流量占比</span>
+          </div>
+          <div class="traffic-metrics">
+            <div class="traffic-metric">
+              <span>LIVE 曝光</span>
+              <b>${formatInt(item.impressions)}</b>
+            </div>
+            <div class="traffic-metric">
+              <span>页面浏览</span>
+              <b>${formatInt(item.pageViews)}</b>
+            </div>
+            <div class="traffic-metric">
+              <span>独立浏览</span>
+              <b>${formatInt(item.uniquePageViews)}</b>
+            </div>
+            <div class="traffic-metric">
+              <span>阶段 CTR</span>
+              <b>${formatPct(item.impressions ? item.pageViews / item.impressions * 100 : 0)}</b>
+            </div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill gold" style="width:${item.impressions / maxImpressions * 100}%"></div>
+          </div>
+          <div class="muted">${formatInt(item.rows)} 个产品进入当前阶段流量口径</div>
         </div>
       `).join("");
     }
@@ -1723,6 +1860,7 @@
       const summary = getSummary(state.filteredRows, filteredMeta);
       const brandRows = buildRollup(state.filteredRows, "brand");
       const lifecycleRows = buildRollup(state.filteredRows, "lifecycle");
+      const lifecycleTrafficRows = buildLifecycleTraffic(state.filteredRows);
 
       const rows = [
         ["section", "dimension", "metric", "value"],
@@ -1748,6 +1886,12 @@
         rows.push(["lifecycle", item.name, "live_gmv", item.liveGmv]);
         rows.push(["lifecycle", item.name, "live_items", item.liveItems]);
         rows.push(["lifecycle", item.name, "live_products", item.rows]);
+      });
+
+      lifecycleTrafficRows.forEach((item) => {
+        rows.push(["lifecycle_traffic", item.name, "live_impressions", item.impressions]);
+        rows.push(["lifecycle_traffic", item.name, "live_page_views", item.pageViews]);
+        rows.push(["lifecycle_traffic", item.name, "live_unique_page_views", item.uniquePageViews]);
       });
 
       downloadCsv(`livestream-live-summary-${Date.now()}.csv`, rows);
@@ -1801,6 +1945,7 @@
       renderBrandRollup(state.filteredRows);
       renderLifecycleMix(state.filteredRows);
       renderLifecycleRollup(state.filteredRows);
+      renderLifecycleTraffic(state.filteredRows);
       renderFunnel(summary);
       renderChannels(summary, state.filteredRows, state.meta);
       renderRanks(state.filteredRows);
@@ -1909,6 +2054,7 @@
       refs.lifecycleList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.funnelList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.lifecycleTrend.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
+      refs.lifecycleTrafficBoard.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.channelList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.topProductList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.unmatchedList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
