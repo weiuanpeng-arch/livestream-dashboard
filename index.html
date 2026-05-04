@@ -767,7 +767,7 @@
         <div>
           <div class="eyebrow">Livestream Product Monitor / v1</div>
           <h1>直播数据监控看板</h1>
-          <p class="subcopy">这版看板现在切到纯 `LIVE` 口径：只使用直播相关字段，例如 `LIVE GMV`、`LIVE items sold`、`LIVE impressions`、`Page views from LIVE` 与 `LIVE conversion rate`。`产品生命周期表` 继续按 `PID` 回填产品阶段，并额外展示不同生命周期的 `LIVE GMV` 占比。</p>
+          <p class="subcopy">这版看板现在切到纯 `LIVE` 口径：只使用直播相关字段，例如 `LIVE-attributed GMV`、`LIVE-attributed items sold`、`LIVE impressions`、`Page views from LIVE` 与 `LIVE conversion rate`。`产品生命周期表` 继续按 `PID` 回填产品阶段，并额外展示不同生命周期的 `LIVE GMV` 占比。</p>
         </div>
         <div class="hero-meta">
           <div class="brief">
@@ -1249,8 +1249,8 @@
           if (!pid && !product) return;
           rawRows += 1;
 
-          const liveGmv = safeNumber(row["live gmv"]);
-          const liveItems = safeNumber(row["live items sold"]);
+          const liveGmv = safeNumber(row["live gmv"] || row["live attributed gmv"]);
+          const liveItems = safeNumber(row["live items sold"] || row["live attributed items sold"]);
           const liveImpressions = safeNumber(row["live impressions"]);
           const livePageViews = safeNumber(row["page views from live"]);
           const liveUniquePageViews = safeNumber(row["unique page views from live"]);
@@ -1462,7 +1462,7 @@
         {
           label: "总 LIVE GMV",
           value: formatRp(summary.totalLiveGmv),
-          note: "只统计直播字段 `LIVE GMV`，不再混入 Video / Shop Tab / Product Card。"
+          note: "只统计直播字段 `LIVE GMV` / `LIVE-attributed GMV`，不再混入 Video / Shop Tab / Product Card。"
         },
         {
           label: "有成交产品",
