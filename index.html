@@ -1051,6 +1051,7 @@
         files: [],
         periods: [],
         sheets: [],
+        detectedBrands: [],
         rawRows: 0,
         liveRows: 0,
         matchedLifecycle: 0,
@@ -1230,6 +1231,7 @@
       let matchedLifecycle = 0;
       let blankLifecycle = 0;
       let unknownBrandRows = 0;
+      const detectedBrands = new Set();
 
       sheetNames.forEach((sheetName) => {
         const sheet = workbook.Sheets[sheetName];
@@ -1269,6 +1271,7 @@
 
           const lifecycle = lifecycleMap.get(pid);
           const brand = inferBrand(sheetName, product);
+          if (["Sparco", "Letme", "Stypro", "Icyee"].includes(brand)) detectedBrands.add(brand);
           if (brand === "Unknown" || brand === "Other") unknownBrandRows += 1;
           if (lifecycle) matchedLifecycle += 1;
           if (lifecycle && !String(lifecycle.period || "").trim()) blankLifecycle += 1;
@@ -1301,6 +1304,7 @@
           files: fileName ? [fileName] : [],
           periods: [...periods],
           sheets: sheetNames,
+          detectedBrands: [...detectedBrands],
           rawRows,
           liveRows,
           matchedLifecycle,
@@ -1312,14 +1316,13 @@
 
     function collectNotices(rows, meta) {
       const notices = [];
-      const existingExpected = EXPECTED_SHEETS.filter((name) =>
-        meta.sheets.some((sheet) => normalizeText(sheet) === normalizeText(name))
-      );
-      const missingSheets = EXPECTED_SHEETS.filter((name) => !existingExpected.includes(name));
-      if (missingSheets.length) {
+      const detectedBrands = meta.detectedBrands || [];
+      const matchedBrands = EXPECTED_SHEETS.filter((name) => detectedBrands.includes(name));
+      const missingBrands = EXPECTED_SHEETS.filter((name) => !matchedBrands.includes(name));
+      if (missingBrands.length) {
         notices.push({
-          level: missingSheets.length >= 3 ? "risk" : "warn",
-          text: `直播底表当前只识别到 ${meta.sheets.length} 个工作表：${meta.sheets.join(" / ") || "无"}。预期品牌 sheet 缺少 ${missingSheets.join(" / ")}。`
+          level: missingBrands.length >= 3 ? "risk" : "warn",
+          text: `当前已识别品牌：${matchedBrands.join(" / ") || "无"}。仍缺少：${missingBrands.join(" / ")}。如果文件工作表名都是 Sheet1 也没关系，系统现在会按实际产品内容识别品牌。`
         });
       }
       const liveRowRate = meta.rawRows ? (meta.liveRows / meta.rawRows) * 100 : 0;
@@ -1730,6 +1733,11 @@
           detail: `已读取文件：${meta.files.join(" / ") || "无"}`
         },
         {
+          title: "识别到的品牌",
+          value: `${formatInt((meta.detectedBrands || []).length)} 个`,
+          detail: `品牌识别结果：${(meta.detectedBrands || []).join(" / ") || "无"}`
+        },
+        {
           title: "直播底表工作表",
           value: `${formatInt(meta.sheets.length)} 个`,
           detail: `已识别工作表：${meta.sheets.join(" / ") || "无"}`
@@ -1973,6 +1981,7 @@
             files: [],
             periods: [],
             sheets: [],
+            detectedBrands: [],
             rawRows: 0,
             liveRows: 0,
             matchedLifecycle: 0,
@@ -1988,6 +1997,7 @@
           merged.meta.files.push(...meta.files);
           merged.meta.periods.push(...meta.periods);
           merged.meta.sheets.push(...meta.sheets);
+          merged.meta.detectedBrands.push(...meta.detectedBrands);
           merged.meta.rawRows += meta.rawRows;
           merged.meta.liveRows += meta.liveRows;
           merged.meta.matchedLifecycle += meta.matchedLifecycle;
@@ -1998,13 +2008,15 @@
         const uniquePeriods = [...new Set(merged.meta.periods.filter(Boolean))];
         const uniqueSheets = [...new Set(merged.meta.sheets.filter(Boolean))];
         const uniqueFiles = [...new Set(merged.meta.files.filter(Boolean))];
+        const uniqueBrands = [...new Set(merged.meta.detectedBrands.filter(Boolean))];
 
         state.rows = merged.rows.sort((a, b) => b.liveGmv - a.liveGmv);
         state.meta = {
           ...merged.meta,
           files: uniqueFiles,
           periods: uniquePeriods,
-          sheets: uniqueSheets
+          sheets: uniqueSheets,
+          detectedBrands: uniqueBrands
         };
         state.notices = collectNotices(state.rows, state.meta);
         state.filteredRows = [...state.rows];
@@ -2040,6 +2052,7 @@
         files: [],
         periods: [],
         sheets: [],
+        detectedBrands: [],
         rawRows: 0,
         liveRows: 0,
         matchedLifecycle: 0,
