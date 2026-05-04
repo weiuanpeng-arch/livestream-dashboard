@@ -843,6 +843,11 @@
           <option value="">全部状态</option>
         </select>
         <input id="keywordFilter" type="search" placeholder="搜索产品名 / PID / sheet" disabled>
+        <select id="currencyFilter" title="金额币种" disabled>
+          <option value="idr">IDR</option>
+          <option value="cny">CNY</option>
+        </select>
+        <input id="exchangeRateInput" type="number" min="1" step="1" value="2300" title="汇率：1 CNY 对应 IDR" disabled>
         <button id="resetFilterBtn" class="secondary" disabled>重置筛选</button>
       </div>
     </section>
@@ -1076,6 +1081,8 @@
       periodFilter: document.getElementById("periodFilter"),
       statusFilter: document.getElementById("statusFilter"),
       keywordFilter: document.getElementById("keywordFilter"),
+      currencyFilter: document.getElementById("currencyFilter"),
+      exchangeRateInput: document.getElementById("exchangeRateInput"),
       resetFilterBtn: document.getElementById("resetFilterBtn"),
       brandList: document.getElementById("brandList"),
       lifecycleDonut: document.getElementById("lifecycleDonut"),
@@ -1094,8 +1101,21 @@
     };
 
     const formatInt = (value) => new Intl.NumberFormat("zh-CN").format(Number(value || 0));
-    const formatRp = (value) => `Rp ${formatInt(Math.round(Number(value || 0)))}`;
     const formatPct = (value) => `${Number(value || 0).toFixed(2)}%`;
+    function currentExchangeRate() {
+      const parsed = Number(refs.exchangeRateInput?.value || 2300);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 2300;
+    }
+
+    function formatMoney(value) {
+      const amount = Number(value || 0);
+      if (refs.currencyFilter?.value === "cny") {
+        return `¥ ${formatInt(Math.round(amount / currentExchangeRate()))}`;
+      }
+      return `Rp ${formatInt(Math.round(amount))}`;
+    }
+
+    const formatRp = formatMoney;
     const escapeHtml = (value) => String(value ?? "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -1535,7 +1555,7 @@
     function renderLifecycleMix(rows) {
       if (!rows.length) {
         refs.lifecycleDonut.style.background = "conic-gradient(#e8ddd0 0 100%)";
-        refs.lifecycleDonutValue.textContent = "Rp 0";
+        refs.lifecycleDonutValue.textContent = formatRp(0);
         refs.lifecycleList.innerHTML = `<div class="empty">没有符合筛选条件的生命周期数据。</div>`;
         return;
       }
@@ -1839,8 +1859,9 @@
     }
 
     function exportDetailCsv() {
+      const rate = currentExchangeRate();
       const rows = [
-        ["brand", "source_file", "sheet_name", "pid", "product", "lifecycle", "status", "live_items_sold", "live_gmv", "live_impressions", "live_page_views", "live_unique_page_views", "live_unique_customers", "live_ctr_pct", "live_cvr_pct"],
+        ["brand", "source_file", "sheet_name", "pid", "product", "lifecycle", "status", "live_items_sold", "live_gmv_idr", "live_gmv_cny", "exchange_rate_idr_per_cny", "live_impressions", "live_page_views", "live_unique_page_views", "live_unique_customers", "live_ctr_pct", "live_cvr_pct"],
         ...state.filteredRows.map((row) => [
           row.brand,
           row.sourceFile,
@@ -1851,6 +1872,8 @@
           row.status,
           row.liveItems,
           row.liveGmv,
+          row.liveGmv / rate,
+          rate,
           row.liveImpressions,
           row.livePageViews,
           row.liveUniquePageViews,
@@ -1872,11 +1895,14 @@
       const brandRows = buildRollup(state.filteredRows, "brand");
       const lifecycleRows = buildRollup(state.filteredRows, "lifecycle");
       const lifecycleTrafficRows = buildLifecycleTraffic(state.filteredRows);
+      const rate = currentExchangeRate();
 
       const rows = [
         ["section", "dimension", "metric", "value"],
         ["overview", "all", "live_products", summary.totalRows],
         ["overview", "all", "total_live_gmv", summary.totalLiveGmv],
+        ["overview", "all", "total_live_gmv_cny", summary.totalLiveGmv / rate],
+        ["overview", "all", "exchange_rate_idr_per_cny", rate],
         ["overview", "all", "total_live_items", summary.totalLiveItems],
         ["overview", "all", "total_live_impressions", summary.totalLiveImpressions],
         ["overview", "all", "total_live_page_views", summary.totalLivePageViews],
@@ -1889,12 +1915,14 @@
 
       brandRows.forEach((item) => {
         rows.push(["brand", item.name, "live_gmv", item.liveGmv]);
+        rows.push(["brand", item.name, "live_gmv_cny", item.liveGmv / rate]);
         rows.push(["brand", item.name, "live_items", item.liveItems]);
         rows.push(["brand", item.name, "live_products", item.rows]);
       });
 
       lifecycleRows.forEach((item) => {
         rows.push(["lifecycle", item.name, "live_gmv", item.liveGmv]);
+        rows.push(["lifecycle", item.name, "live_gmv_cny", item.liveGmv / rate]);
         rows.push(["lifecycle", item.name, "live_items", item.liveItems]);
         rows.push(["lifecycle", item.name, "live_products", item.rows]);
       });
@@ -1918,7 +1946,7 @@
       refs.periodFilter.innerHTML = `<option value="">全部生命周期</option>${lifecycleOptions.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`;
       refs.statusFilter.innerHTML = `<option value="">全部状态</option>${statusOptions.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`;
 
-      [refs.brandFilter, refs.periodFilter, refs.statusFilter, refs.keywordFilter, refs.resetFilterBtn].forEach((node) => {
+      [refs.brandFilter, refs.periodFilter, refs.statusFilter, refs.keywordFilter, refs.currencyFilter, refs.exchangeRateInput, refs.resetFilterBtn].forEach((node) => {
         node.disabled = false;
       });
     }
@@ -2066,7 +2094,7 @@
       refs.statsGrid.innerHTML = "";
       refs.brandList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.lifecycleDonut.style.background = "conic-gradient(#e8ddd0 0 100%)";
-      refs.lifecycleDonutValue.textContent = "Rp 0";
+      refs.lifecycleDonutValue.textContent = formatRp(0);
       refs.lifecycleList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.funnelList.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
       refs.lifecycleTrend.innerHTML = `<div class="empty">上传 Excel 后显示。</div>`;
@@ -2080,13 +2108,15 @@
       refs.detailTable.innerHTML = `<tr><td colspan="14"><div class="empty">上传 Excel 后显示。</div></td></tr>`;
       refs.tableMeta.textContent = "当前没有数据。";
 
-      [refs.brandFilter, refs.periodFilter, refs.statusFilter, refs.keywordFilter, refs.resetFilterBtn].forEach((node) => {
+      [refs.brandFilter, refs.periodFilter, refs.statusFilter, refs.keywordFilter, refs.currencyFilter, refs.exchangeRateInput, refs.resetFilterBtn].forEach((node) => {
         node.disabled = true;
       });
       refs.brandFilter.innerHTML = `<option value="">全部品牌</option>`;
       refs.periodFilter.innerHTML = `<option value="">全部生命周期</option>`;
       refs.statusFilter.innerHTML = `<option value="">全部状态</option>`;
       refs.keywordFilter.value = "";
+      refs.currencyFilter.value = "idr";
+      refs.exchangeRateInput.value = "2300";
 
       setStatus(refs.productStatus, "", "等待上传");
       setStatus(refs.lifecycleStatus, "", "等待上传");
@@ -2124,6 +2154,8 @@
       refs.periodFilter.value = "";
       refs.statusFilter.value = "";
       refs.keywordFilter.value = "";
+      refs.currencyFilter.value = "idr";
+      refs.exchangeRateInput.value = "2300";
       applyFilters();
     });
 
@@ -2131,6 +2163,8 @@
       node.addEventListener("change", applyFilters);
     });
     refs.keywordFilter.addEventListener("input", applyFilters);
+    refs.currencyFilter.addEventListener("change", applyFilters);
+    refs.exchangeRateInput.addEventListener("input", applyFilters);
 
     resetAll();
   </script>
